@@ -1,0 +1,106 @@
+---
+title: "CS516 Project"
+output: html_document
+---
+
+```{r}
+# load data
+library(data.table)
+library(dplyr)
+library(chron)
+library(lubridate)
+
+jan18 <- read.table("yellow_tripdata_2018-01.csv", sep=",", header = T)
+feb18 <- read.table("yellow_tripdata_2018-02.csv", sep=",", header = T)
+mar18 <- read.table("yellow_tripdata_2018-03.csv", sep=",", header = T)
+apr18 <- read.table("yellow_tripdata_2018-04.csv", sep=",", header = T)
+may18 <- read.table("yellow_tripdata_2018-05.csv", sep=",", header = T)
+jun18 <- read.table("yellow_tripdata_2018-06.csv", sep=",", header = T)
+```
+
+# Exploratory data analysis
+First combined yellow cab data from January 2018 to June 2018 into one dataset. 
+    VendorID     tpep_pickup_datetime tpep_dropoff_datetime passenger_count trip_distance         RatecodeID    
+ Min.   :1.000   Length:53925735      Length:53925735       Min.   :  0.0   Min.   :     0.00   Min.   : 1.000  
+ 1st Qu.:1.000   Class :character     Class :character      1st Qu.:  1.0   1st Qu.:     0.96   1st Qu.: 1.000  
+ Median :2.000   Mode  :character     Mode  :character      Median :  1.0   Median :     1.60   Median : 1.000  
+ Mean   :1.566                                              Mean   :  1.6   Mean   :     2.90   Mean   : 1.042  
+ 3rd Qu.:2.000                                              3rd Qu.:  2.0   3rd Qu.:     3.00   3rd Qu.: 1.000  
+ Max.   :4.000                                              Max.   :192.0   Max.   :189483.84   Max.   :99.000  
+ store_and_fwd_flag  PULocationID    DOLocationID    payment_type    fare_amount           extra            mta_tax        
+ N:53704239         Min.   :  1.0   Min.   :  1.0   Min.   :1.000   Min.   :  -485.0   Min.   :-60.000   Min.   : -0.5000  
+ Y:  221496         1st Qu.:114.0   1st Qu.:112.0   1st Qu.:1.000   1st Qu.:     6.5   1st Qu.:  0.000   1st Qu.:  0.5000  
+                    Median :162.0   Median :162.0   Median :1.000   Median :     9.0   Median :  0.000   Median :  0.5000  
+                    Mean   :163.3   Mean   :161.7   Mean   :1.311   Mean   :    12.8   Mean   :  0.332   Mean   :  0.4974  
+                    3rd Qu.:233.0   3rd Qu.:233.0   3rd Qu.:2.000   3rd Qu.:    14.5   3rd Qu.:  0.500   3rd Qu.:  0.5000  
+                    Max.   :265.0   Max.   :265.0   Max.   :4.000   Max.   :349026.7   Max.   : 96.640   Max.   :150.0000  
+   tip_amount        tolls_amount       improvement_surcharge  total_amount     
+ Min.   :-322.420   Min.   : -52.5000   Min.   :  -0.3        Min.   :  -485.8  
+ 1st Qu.:   0.000   1st Qu.:   0.0000   1st Qu.:   0.3        1st Qu.:     8.3  
+ Median :   1.400   Median :   0.0000   Median :   0.3        Median :    11.8  
+ Mean   :   1.867   Mean   :   0.3352   Mean   :   0.3        Mean   :    16.1  
+ 3rd Qu.:   2.450   3rd Qu.:   0.0000   3rd Qu.:   0.3        3rd Qu.:    17.3  
+ Max.   : 496.000   Max.   :1650.0000   Max.   :4000.3        Max.   :349116.8
+```{r}
+# keep verdor 1 and 2
+clean <- df %>% filter(VendorID != 4)
+
+# remove 0 passenger trips
+clean <- clean %>% filter(passenger_count != 0 & passenger_count != 192)
+
+# remove 0 mileage trips
+clean <- clean %>% filter(trip_distance != 0 & trip_distance < 1000)
+
+# remove RatecodeID == 99
+clean <- clean %>% filter(RatecodeID != 99)
+
+# remove negative fare amount
+clean <- clean %>% filter(fare_amount > 0)
+
+# remove negative extra 
+clean <- clean %>% filter(extra >= 0 & extra < 1)
+
+# remove negative mta_tax
+clean <- clean %>% filter(mta_tax >= 0 & mta_tax < 1)
+
+# remove negative tip
+clean <- clean %>% filter(tip_amount >= 0)
+
+# remove negative toll 
+clean <- clean %>% filter(tolls_amount >= 0 & tolls_amount < 500)
+
+# remove negative improvement_surcharge
+clean <- clean %>% filter(improvement_surcharge >= 0 & improvement_surcharge <= 1)
+
+# remove negative total_amount
+clean <- clean %>% filter(total_amount > 0 & total_amount < 1000)
+
+# remove unknown pick up locataions
+clean <- clean %>% filter(!(PULocationID %in% c(264, 265)))
+
+# remove unknown dropoff locations
+clean <- clean %>% filter(!(DOLocationID %in% c(264, 265)))
+
+# remove tip amount 0
+clean <- clean %>% filter(!(tip_amount == 0))
+```
+
+```{r}
+# deal with time
+clean$pickup_datetime <- ymd_hms(clean$tpep_pickup_datetime, tz = "US/Eastern")
+clean$dropoff_datetime <- ymd_hms(clean$tpep_dropoff_datetime, tz = "US/Eastern")
+clean <- clean[complete.cases(clean),]
+
+# compute duration
+clean$duration <- as.numeric(as.duration(clean$pickup_datetime %--% clean$dropoff_datetime) / dminutes(1))
+clean <- clean %>% filter(duration > 0)
+
+# mark weekend and weekday
+clean$is_weekend <- as.numeric(is.weekend(as.Date(clean$pickup_datetime)))
+
+clean <- clean %>% select(-c(tpep_pickup_datetime, tpep_dropoff_datetime))
+
+# mark rush hour
+
+```
+
