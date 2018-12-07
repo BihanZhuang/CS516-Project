@@ -17,10 +17,8 @@ class CSVPathDataset(Dataset):
     def __len__(self):
         return len(self.df)
     def __getitem__(self):
-        y = self.df.tip_amount
-        x = self.df.drop('tip_amount', 1)
-        x = x.drop('PULocationID', 1)
-        x = x.drop('DOLocationID', 1)
+        y = self.df[['tip_amount', 'fare_amount']];
+        x = self.df.drop(['RatecodeID', 'PULocationID', 'DOLocationID', 'total_amount', 'fare_amount', 'mta_tax', 'tip_amount', 'improvement_surcharge'], 1)
         #x = self.df.fare_amount
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, shuffle=True)
         y_train = torch.from_numpy(np.array(y_train))
@@ -30,12 +28,12 @@ class CSVPathDataset(Dataset):
         return x_train, y_train, x_test, y_test
 
 
-csvFile = CSVPathDataset("CS516-project/tiny.csv")
+csvFile = CSVPathDataset("CS516-Project/tiny.csv")
 
 
 x, y, x_test, y_test = csvFile.__getitem__()
 #x = x.reshape(-1, 1)
-y = y.reshape(-1, 1)
+#y = y.reshape(-1, 1)
 
 print(x.shape);
 print(y.shape)
@@ -59,7 +57,7 @@ class Net(torch.nn.Module):
         output = self.predict(out)             # linear output
         return output
 
-net = Net(n_feature=11, n_hidden=15, n_output=1)     # define the network
+net = Net(n_feature=6, n_hidden=8, n_output=2)     # define the network
 print(net)  # net architecture
 
 optimizer = torch.optim.SGD(net.parameters(), lr=0.01)
