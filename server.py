@@ -25,7 +25,7 @@ def load_model():
 
     """
         global model
-        model = Net(n_feature=6, n_hidden=8, n_output=1)
+        model = Net(n_feature=6, n_hidden=8, n_output=2)
         model.load_state_dict(torch.load('./trainedModel.pt'))
         model.eval()
         
