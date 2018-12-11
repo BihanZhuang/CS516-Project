@@ -1,0 +1,17 @@
+<!doctype html>
+<title>Tip Anticipation</title>
+<h1>Information</h1>
+{% from "_field.html" import render_field %}
+<form method="POST" action="{{ url_for('/') }}">
+  {{ form.hidden_tag() }}
+  {{ form.csrf_token }}
+  <table>
+   
+    {{ render_field(form.num_of_clients) }}
+    {{ render_field(form.distance) }}
+    {{ render_field(form.tolls) }}
+    {{ render_field(form.duration) }}
+    {{ render_field(form.is_weekend) }}
+  </table>
+  {{ form.submit }}
+  </form>

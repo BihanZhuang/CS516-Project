@@ -3,8 +3,16 @@ import numpy as np
 import torch.nn.functional as F
 import flask
 import torch
+from form import TipForm
+from flask_wtf.csrf import CsrfProtect
+
 app = flask.Flask(__name__)
+CsrfProtect(app)
+WTF_CSRF_ENABLED = True
+
+SECRET_KEY = 'this-is-a-secret-key'
 model = None
+
 
 class Net(torch.nn.Module):
     def __init__(self, n_feature, n_hidden, n_output):
@@ -28,19 +36,35 @@ def load_model():
         model = Net(n_feature=6, n_hidden=8, n_output=2)
         model.load_state_dict(torch.load('./trainedModel.pt'))
         model.eval()
+
+@app.route("/", methods=['GET','POST'])
+def start_page():
+    form = TipForm()
+    if form.validate_on_submit():
+        return redirect('/predict')
+    return render_template('tip.html', form = form)
+    
         
-@app.route("/predict", methods=["GET"])
+@app.route("/predict", methods=["POST"])
 def predict():
     # Initialize the data dictionary that will be returned from the view
     data = {}
-    if flask.request.method == 'GET':
+    if flask.request.method == 'POST':
+            """
             num_of_clients = int(flask.request.args.get('num'))
             distance = float(flask.request.args.get('dis'))
             fare_amunt = 2.5+distance/0.2*0.5+0.8
             tolls = float(flask.request.args.get('tolls'))
             duration = float(flask.request.args.get('dur'))
             is_weekend = bool(flask.request.args.get('is_w'))
-
+            """
+            num_of_clients = int(request.form['num_of_clients'])
+            distance = float(request.form['distance'])
+            tolls = float(request.form['tolls'])
+            duration = float(request.form['duration'])
+            is_weekend = bool(request.form['is_weekend'])
+            fare_amunt = 2.5+distance/0.2*0.5+0.8
+            
             #prepare_data
             a = [num_of_clients,distance,fare_amunt,tolls,duration,is_weekend]
             a = torch.from_numpy(np.array(a))
@@ -51,9 +75,9 @@ def predict():
 
             #return value
             result = model(a).data
-            data['tips'] =  float(result)
-            data['fare'] = fare_amunt
-            data['total'] = fare_amunt+float(result)
+            data['tips'] =  float(result[1])
+            data['fare'] = float(result[0])
+            data['total'] = float(result[1])+float(result[0])
 
     return flask.jsonify(data)
             
