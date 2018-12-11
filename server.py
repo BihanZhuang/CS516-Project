@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import flask
 import torch
 from form import TipForm
+from flask import render_template
 #from flask_wtf.csrf import CsrfProtect
 
 app = flask.Flask(__name__)
@@ -38,12 +39,12 @@ def load_model():
         model.load_state_dict(torch.load('./trainedModel.pt'))
         model.eval()
 
-@app.route("/", methods=['GET','POST'])
+@app.route("/tip", methods=['GET','POST'])
 def start_page():
-    form = TipForm()
+    form = TipForm(csrf_enabled=False)
     if form.validate_on_submit():
         return redirect('/predict')
-    return render_template('tip.html', form = form)
+    return render_template('tip.html', title='Tip',form = form)
     
         
 @app.route("/predict", methods=["POST"])
