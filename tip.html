@@ -4,7 +4,6 @@
 {% from "_field.html" import render_field %}
 <form method="POST" action="{{ url_for('/') }}">
   {{ form.hidden_tag() }}
-  {{ form.csrf_token }}
   <table>
    
     {{ render_field(form.num_of_clients) }}

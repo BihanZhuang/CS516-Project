@@ -4,13 +4,14 @@ import torch.nn.functional as F
 import flask
 import torch
 from form import TipForm
-from flask_wtf.csrf import CsrfProtect
+#from flask_wtf.csrf import CsrfProtect
 
 app = flask.Flask(__name__)
-CsrfProtect(app)
-WTF_CSRF_ENABLED = True
+app.config['WTF_CSRF_SECRET_KEY'] = 'IT 666 to 709 kill pic'
+#CsrfProtect(app)
+#WTF_CSRF_ENABLED = True
 
-SECRET_KEY = 'this-is-a-secret-key'
+#SECRET_KEY = 'this-is-a-secret-key'
 model = None
 
 
