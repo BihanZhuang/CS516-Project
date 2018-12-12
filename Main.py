@@ -18,9 +18,9 @@ class CSVPathDataset(Dataset):
         return len(self.df)
     def __getitem__(self):
         y = self.df[['tip_amount', 'fare_amount']];
-        x = self.df.drop(['RatecodeID', 'PULocationID', 'DOLocationID', 'total_amount', 'fare_amount', 'mta_tax', 'tip_amount', 'improvement_surcharge'], 1)
+        x = self.df[["passenger_count", "trip_distance", "extra", "tolls_amount", "duration", "is_weekend"]];
         #x = self.df.fare_amount
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, shuffle=True)
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.0001, shuffle=True)
         y_train = torch.from_numpy(np.array(y_train))
         y_test = torch.from_numpy(np.array(y_test))
         x_train = torch.from_numpy(np.array(x_train))
@@ -28,7 +28,7 @@ class CSVPathDataset(Dataset):
         return x_train, y_train, x_test, y_test
 
 
-csvFile = CSVPathDataset("CS516-Project/tiny.csv")
+csvFile = CSVPathDataset("CS516-Project/final.csv")
 
 
 x, y, x_test, y_test = csvFile.__getitem__()
@@ -64,7 +64,7 @@ optimizer = torch.optim.SGD(net.parameters(), lr=0.01)
 loss_func = torch.nn.MSELoss()  # this is for regression mean squared loss
 
 
-for t in range(200):
+for t in range(400):
     prediction = net(x)     # input x and predict based on x
 
     loss = loss_func(prediction, y)     # must be (1. nn output, 2. target)
